@@ -8,13 +8,15 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; text-align: center; }
         h1 { color: #333; margin-bottom: 5px; }
-        #time { color: #666; font-style: italic; }
+        .section-title { font-size: 1.6rem; color: #333; margin-top: 30px; margin-bottom: 10px; font-weight: bold; text-align: left; max-width: 1000px; margin-left: auto; margin-right: auto; padding-left: 10px;}
+        .realtime-title { border-left: 6px solid #ffcc00; }
+        .history-title { border-left: 6px solid #007bff; }
         
         /* 📅 ส่วนควบคุมตัวกรอง (Filter Controls) */
         .filter-container {
             background: white;
             max-width: 1000px;
-            margin: 20px auto;
+            margin: 15px auto;
             padding: 15px;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
@@ -46,7 +48,7 @@
         .btn-filter:hover { background-color: #0056b3; }
 
         /* 📊 Grid กล้อง 1-9 */
-        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1000px; margin: 20px auto; }
+        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1000px; margin: 15px auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); border-top: 5px solid #ffcc00; transition: 0.3s; }
         .card.historical { border-top-color: #007bff; }
         .cam-title { font-size: 1.2rem; font-weight: bold; color: #555; }
@@ -57,7 +59,7 @@
         .table-container {
             background: white;
             max-width: 1000px;
-            margin: 30px auto;
+            margin: 15px auto 40px auto;
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
@@ -71,17 +73,15 @@
             gap: 10px;
         }
         .table-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: bold;
             color: #444;
             text-align: left;
-            border-left: 5px solid #007bff;
+            border-left: 5px solid #ffcc00;
             padding-left: 10px;
         }
-        .download-buttons {
-            display: flex;
-            gap: 10px;
-        }
+        .table-title.history-table-title { border-left-color: #007bff; }
+        .download-buttons { display: flex; gap: 10px; }
         .btn-download {
             padding: 8px 14px;
             border: none;
@@ -99,60 +99,91 @@
         .btn-txt { background-color: #28a745; color: white; }
         .btn-txt:hover { background-color: #218838; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            padding: 12px 15px;
-            text-align: center;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        th {
-            background-color: #f8f9fa;
-            color: #555;
-            font-weight: bold;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; text-align: center; border-bottom: 1px solid #e0e0e0; }
+        th { background-color: #f8f9fa; color: #555; font-weight: bold; }
         tr:hover { background-color: #fdfdfd; }
-        .summary-row {
-            background-color: #e9ecef !important;
-            font-weight: bold;
-            color: #333;
-        }
+        .summary-row { background-color: #e9ecef !important; font-weight: bold; color: #333; }
         .summary-row td { border-top: 2px solid #ced4da; }
 
         /* สถานะโหมด */
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
+        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; }
         .realtime-mode { background-color: #e1f7ec; color: #155724; }
         .history-mode { background-color: #e2f0ff; color: #004085; }
+        
+        hr { border: 0; height: 2px; background: #ddd; max-width: 1000px; margin: 40px auto; }
     </style>
 </head>
 <body>
 
-    <h1>📊 ระบบนับจำนวนคน Realtime & ประวัติย้อนหลัง</h1>
-    <div id="mode-status" class="status-badge realtime-mode">🟢 โหมดปัจจุบัน: Realtime (อัปเดตทุก 3 วิ)</div>
-    <p>เวลาข้อมูล: <span id="time">กำลังโหลด...</span></p>
+    <h1>📊 ระบบจัดการข้อมูลจำนวนคนแยกส่วน</h1>
+    <p style="color:#666; margin-bottom: 25px;">แยกการทำงานระหว่างข้อมูลกล้องสด Realtime และการเรียกดูสถิติตามช่วงเวลาอย่างอิสระ</p>
 
+    <div class="section-title realtime-title">🟢 ส่วนที่ 1: ระบบนับจำนวนคนแบบสด (Realtime)</div>
+    <div class="status-badge realtime-mode">อัปเดตอัตโนมัติทุก 2 วินาที</div>
+    <p style="margin-top: 5px;">เวลาข้อมูลล่าสุด: <span id="rt-time" style="font-weight: bold; color: #222;">กำลังโหลด...</span></p>
+
+    <div class="grid-container">
+        <div class="card" id="rt-card1"><div class="cam-title">กล้อง 1</div><div class="count" id="rt-cam1">-</div><div class="unit">คน</div></div>
+        <div class="card" id="rt-card2"><div class="cam-title">กล้อง 2</div><div class="count" id="rt-cam2">-</div><div class="unit">คน</div></div>
+        <div class="card" id="rt-card3"><div class="cam-title">กล้อง 3</div><div class="count" id="rt-cam3">-</div><div class="unit">คน</div></div>
+        <div class="card" id="rt-card4"><div class="cam-title">กล้อง 4</div><div class="count" id="rt-cam4">-</div><div class="unit">คน</div></div>
+        <div class="card" id="rt-card5"><div class="cam-title">กล้อง 5</div><div class="count" id="rt-cam5">-</div><div class="unit">คน</div></div>
+        <div class="card" id="rt-card6"><div class="cam-title">กล้อง 6</div><div class="count" id="rt-cam6">-</div><div class="unit">คน</div></div>
+        <div class="card" id="rt-card7"><div class="cam-title">กล้อง 7</div><div class="count" id="rt-cam7">-</div><div class="unit">คน</div></div>
+        <div class="card" id="rt-card8"><div class="cam-title">กล้อง 8</div><div class="count" id="rt-cam8">-</div><div class="unit">คน</div></div>
+        <div class="card" id="rt-card9"><div class="cam-title">กล้อง 9</div><div class="count" id="rt-cam9">-</div><div class="unit">คน</div></div>
+    </div>
+
+    <div class="table-container" id="rt-report-section">
+        <div class="table-header-group">
+            <div class="table-title">📋 ตารางสรุปข้อมูลรายกล้อง (Realtime)</div>
+            <div class="download-buttons">
+                <button class="btn-download btn-pdf" onclick="downloadPDF('rt-report-section', 'Realtime')">📄 PDF</button>
+                <button class="btn-download btn-txt" onclick="downloadTXT('rt-table-body', 'rt-total-count', 'rt-total-unit', 'rt-avg-count', 'Realtime')">📝 TXT</button>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ลำดับบรรทัด</th>
+                    <th>ตำแหน่ง / อุปกรณ์</th>
+                    <th>จำนวนที่นับได้</th>
+                    <th>หน่วย</th>
+                </tr>
+            </thead>
+            <tbody id="rt-table-body">
+                </tbody>
+            <tfoot>
+                <tr class="summary-row">
+                    <td colspan="2">รวมจำนวนทั้งหมด (Total)</td>
+                    <td id="rt-total-count">0</td>
+                    <td id="rt-total-unit">คน</td>
+                </tr>
+                <tr class="summary-row" style="background-color: #f1f3f5 !important;">
+                    <td colspan="2">ค่าเฉลี่ยต่อกล้อง (Average)</td>
+                    <td id="rt-avg-count">0</td>
+                    <td>คน</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <hr>
+
+    <div class="section-title history-title">🔵 ส่วนที่ 2: ค้นหาข้อมูลประวัติย้อนหลัง (Historical Data)</div>
+    
     <div class="filter-container">
         <div class="filter-group">
-            <label for="view-type">รูปแบบ:</label>
+            <label for="view-type">รูปแบบช่วงเวลา:</label>
             <select id="view-type" onchange="toggleFilterInputs()">
-                <option value="realtime">ดูสด Realtime</option>
                 <option value="daily">รายวัน (ระบุวันที่)</option>
                 <option value="monthly">รายเดือน</option>
                 <option value="yearly">รายปี</option>
             </select>
         </div>
 
-        <div id="input-daily" class="filter-group" style="display:none;">
+        <div id="input-daily" class="filter-group">
             <label for="date-picker">เลือกวันที่:</label>
             <input type="date" id="date-picker">
         </div>
@@ -177,30 +208,32 @@
             </select>
         </div>
 
-        <button class="btn-filter" onclick="applyFilter()">ค้นหาข้อมูล</button>
+        <button class="btn-filter" onclick="applyHistoryFilter()">🔍 ดึงข้อมูลประวัติ</button>
     </div>
+    
+    <p>ช่วงเวลาที่แสดงข้อมูลอยู่: <span id="hist-time" style="font-weight: bold; color: #004085;">ยังไม่มีการเรียกค้นข้อมูล</span></p>
 
     <div class="grid-container">
-        <div class="card" id="card1"><div class="cam-title">กล้อง 1</div><div class="count" id="cam1">-</div><div class="unit" id="unit1">คน</div></div>
-        <div class="card" id="card2"><div class="cam-title">กล้อง 2</div><div class="count" id="cam2">-</div><div class="unit" id="unit2">คน</div></div>
-        <div class="card" id="card3"><div class="cam-title">กล้อง 3</div><div class="count" id="cam3">-</div><div class="unit" id="unit3">คน</div></div>
-        <div class="card" id="card4"><div class="cam-title">กล้อง 4</div><div class="count" id="cam4">-</div><div class="unit" id="unit4">คน</div></div>
-        <div class="card" id="card5"><div class="cam-title">กล้อง 5</div><div class="count" id="cam5">-</div><div class="unit" id="unit5">คน</div></div>
-        <div class="card" id="card6"><div class="cam-title">กล้อง 6</div><div class="count" id="cam6">-</div><div class="unit" id="unit6">คน</div></div>
-        <div class="card" id="card7"><div class="cam-title">กล้อง 7</div><div class="count" id="cam7">-</div><div class="unit" id="unit7">คน</div></div>
-        <div class="card" id="card8"><div class="cam-title">กล้อง 8</div><div class="count" id="cam8">-</div><div class="unit" id="unit8">คน</div></div>
-        <div class="card" id="card9"><div class="cam-title">กล้อง 9</div><div class="count" id="cam9">-</div><div class="unit" id="unit9">คน</div></div>
+        <div class="card historical" id="hist-card1"><div class="cam-title">กล้อง 1</div><div class="count" id="hist-cam1">-</div><div class="unit" id="hist-unit1">คน (สูงสุด)</div></div>
+        <div class="card historical" id="hist-card2"><div class="cam-title">กล้อง 2</div><div class="count" id="hist-cam2">-</div><div class="unit" id="hist-unit2">คน (สูงสุด)</div></div>
+        <div class="card historical" id="hist-card3"><div class="cam-title">กล้อง 3</div><div class="count" id="hist-cam3">-</div><div class="unit" id="hist-unit3">คน (สูงสุด)</div></div>
+        <div class="card historical" id="hist-card4"><div class="cam-title">กล้อง 4</div><div class="count" id="hist-cam4">-</div><div class="unit" id="hist-unit4">คน (สูงสุด)</div></div>
+        <div class="card historical" id="hist-card5"><div class="cam-title">กล้อง 5</div><div class="count" id="hist-cam5">-</div><div class="unit" id="hist-unit5">คน (สูงสุด)</div></div>
+        <div class="card historical" id="hist-card6"><div class="cam-title">กล้อง 6</div><div class="count" id="hist-cam6">-</div><div class="unit" id="hist-unit6">คน (สูงสุด)</div></div>
+        <div class="card historical" id="hist-card7"><div class="cam-title">กล้อง 7</div><div class="count" id="hist-cam7">-</div><div class="unit" id="hist-unit7">คน (สูงสุด)</div></div>
+        <div class="card historical" id="hist-card8"><div class="cam-title">กล้อง 8</div><div class="count" id="hist-cam8">-</div><div class="unit" id="hist-unit8">คน (สูงสุด)</div></div>
+        <div class="card historical" id="hist-card9"><div class="cam-title">กล้อง 9</div><div class="count" id="hist-cam9">-</div><div class="unit" id="hist-unit9">คน (สูงสุด)</div></div>
     </div>
 
-    <div class="table-container" id="report-section">
+    <div class="table-container" id="hist-report-section">
         <div class="table-header-group">
-            <div class="table-title">📋 ตารางสรุปรายละเอียดข้อมูลรายกล้อง</div>
+            <div class="table-title history-table-title">📋 ตารางสรุปข้อมูลประวัติย้อนหลังรายกล้อง</div>
             <div class="download-buttons">
-                <button class="btn-download btn-pdf" onclick="downloadPDF()">📄 ดาวน์โหลด PDF</button>
-                <button class="btn-download btn-txt" onclick="downloadTXT()">📝 ดาวน์โหลด Notepad (TXT)</button>
+                <button class="btn-download btn-pdf" onclick="downloadPDF('hist-report-section', currentHistoryLabel)">📄 PDF</button>
+                <button class="btn-download btn-txt" onclick="downloadTXT('hist-table-body', 'hist-total-count', 'hist-total-unit', 'hist-avg-count', currentHistoryLabel)">📝 TXT</button>
             </div>
         </div>
-        <table id="data-table">
+        <table>
             <thead>
                 <tr>
                     <th>ลำดับบรรทัด</th>
@@ -209,17 +242,18 @@
                     <th>หน่วย</th>
                 </tr>
             </thead>
-            <tbody id="table-body">
+            <tbody id="hist-table-body">
+                <tr><td colspan="4" style="color:#999; padding: 20px;">กดปุ่ม "ดึงข้อมูลประวัติ" ด้านบนเพื่อแสดงผล</td></tr>
             </tbody>
             <tfoot>
                 <tr class="summary-row">
                     <td colspan="2">รวมจำนวนทั้งหมด (Total)</td>
-                    <td id="total-count">0</td>
-                    <td id="total-unit">คน</td>
+                    <td id="hist-total-count">0</td>
+                    <td id="hist-total-unit">คน (สูงสุด)</td>
                 </tr>
                 <tr class="summary-row" style="background-color: #f1f3f5 !important;">
                     <td colspan="2">ค่าเฉลี่ยต่อกล้อง (Average)</td>
-                    <td id="avg-count">0</td>
+                    <td id="hist-avg-count">0</td>
                     <td>คน</td>
                 </tr>
             </tfoot>
@@ -228,11 +262,12 @@
 
     <script>
         const dbBaseUrl = "https://cctc3-82c63-default-rtdb.asia-southeast1.firebasedatabase.app/";
-        let liveInterval = null;
-        let currentFilterLabel = "Realtime"; // เก็บชื่อตัวกรองปัจจุบันไว้ใช้ตั้งชื่อไฟล์
+        let currentHistoryLabel = "ยังไม่มีการเลือกช่วงเวลา";
 
+        // ตั้งค่าวันที่เริ่มต้นใน Input
         document.getElementById('date-picker').value = new Date().toISOString().split('T')[0];
 
+        // ซ่อน/แสดง Input ของตัวกรอง
         function toggleFilterInputs() {
             const viewType = document.getElementById("view-type").value;
             document.getElementById("input-daily").style.display = (viewType === 'daily') ? 'block' : 'none';
@@ -240,23 +275,53 @@
             document.getElementById("input-yearly").style.display = (viewType === 'monthly' || viewType === 'yearly') ? 'block' : 'none';
         }
 
-        function fetchRealtimeData() {
-            fetch(`${dbBaseUrl}data.json`)
-                .then(response => response.json())
-                .then(data => {
-                    if(data) {
-                        updateDisplay(data, "คน", false);
-                        document.getElementById("time").innerText = data.last_update || "ไม่มีข้อมูลเวลา";
-                    }
-                }).catch(err => console.error("Realtime Error:", err));
+        // ==================== LOGIC ส่วนที่ 1: REALTIME ====================
+        function startRealtimeSync() {
+            function fetchRealtime() {
+                fetch(`${dbBaseUrl}data.json`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data) {
+                            document.getElementById("rt-time").innerText = data.last_update || "ไม่มีข้อมูลเวลา";
+                            updateTableAndCards("rt", data, "คน");
+                        }
+                    }).catch(err => console.error("Realtime Sync Error:", err));
+            }
+            fetchRealtime();
+            setInterval(fetchRealtime, 2000); // ทำงานทุก 2 วินาทีต่อเนื่องไม่มีหยุด
+        }
+
+        // ==================== LOGIC ส่วนที่ 2: HISTORY ====================
+        function applyHistoryFilter() {
+            const viewType = document.getElementById("view-type").value;
+            
+            if (viewType === "daily") {
+                const dateVal = document.getElementById("date-picker").value;
+                if(!dateVal) return alert("กรุณาเลือกวันที่");
+                currentHistoryLabel = `รายวัน_${dateVal}`;
+                fetchHistoryData(`history/${dateVal.replace(/-/g, '/')}`, dateVal);
+            } 
+            else if (viewType === "monthly") {
+                const year = document.getElementById("year-picker").value;
+                const month = document.getElementById("month-picker").value;
+                currentHistoryLabel = `รายเดือน_${month}_${year}`;
+                fetchHistoryData(`history/${year}/${month}`, `เดือนที่ ${month} ปี ${year}`);
+            } 
+            else if (viewType === "yearly") {
+                const year = document.getElementById("year-picker").value;
+                currentHistoryLabel = `รายปี_${year}`;
+                fetchHistoryData(`history/${year}`, `ปี ค.ศ. ${year}`);
+            }
         }
 
         function fetchHistoryData(path, filterLabel) {
+            document.getElementById("hist-time").innerText = "กำลังโหลดข้อมูลประวัติ...";
             fetch(`${dbBaseUrl}${path}.json`)
                 .then(response => response.json())
                 .then(data => {
                     if (!data) {
                         alert("❌ ไม่พบข้อมูลสถิติในกลุ่มช่วงเวลาที่เลือก");
+                        document.getElementById("hist-time").innerText = "ไม่พบข้อมูลประวัติ";
                         return;
                     }
 
@@ -287,30 +352,32 @@
                         }
                     });
 
-                    updateDisplay(summaryData, "คน (สูงสุด)", true);
-                    document.getElementById("time").innerText = `ประวัติย้อนหลังของ: ${filterLabel}`;
+                    updateTableAndCards("hist", summaryData, "คน (สูงสุด)");
+                    document.getElementById("hist-time").innerText = `${filterLabel}`;
                 }).catch(err => {
-                    console.error("History Error:", err);
+                    console.error("History Fetch Error:", err);
                     alert("เกิดข้อผิดพลาดในการดึงข้อมูลประวัติ");
                 });
         }
 
-        function updateDisplay(data, unitText, isHistory) {
-            const tableBody = document.getElementById("table-body");
+        // ==================== ฟังก์ชันแชร์ร่วม (ดึงกลุ่ม ID ไปอัปเดตข้อมูล) ====================
+        function updateTableAndCards(prefix, data, unitText) {
+            const tableBody = document.getElementById(`${prefix}-table-body`);
             tableBody.innerHTML = ""; 
-            
             let total = 0;
 
             for(let i=1; i<=9; i++) {
                 const countValue = data[`cam${i}`] !== undefined ? data[`cam${i}`] : 0;
                 total += Number(countValue);
 
-                document.getElementById(`cam${i}`).innerText = countValue;
-                document.getElementById(`unit${i}`).innerText = unitText;
+                // อัปเดตที่ Grid Card
+                const cardCountElement = document.getElementById(`${prefix}-cam${i}`);
+                if(cardCountElement) cardCountElement.innerText = countValue;
                 
-                const card = document.getElementById(`card${i}`);
-                if (isHistory) card.classList.add('historical'); else card.classList.remove('historical');
+                const cardUnitElement = document.getElementById(`${prefix}-unit${i}`);
+                if(cardUnitElement) cardUnitElement.innerText = unitText;
 
+                // เพิ่มแถวในตารางข้อมูล
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${i}</td>
@@ -321,109 +388,72 @@
                 tableBody.appendChild(row);
             }
 
-            document.getElementById("total-count").innerText = total;
-            document.getElementById("total-unit").innerText = unitText;
-            document.getElementById("avg-count").innerText = (total / 9).toFixed(2);
+            // อัปเดตฟุตเตอร์ของตาราง
+            document.getElementById(`${prefix}-total-count`).innerText = total;
+            document.getElementById(`${prefix}-total-unit`).innerText = unitText;
+            document.getElementById(`${prefix}-avg-count`).innerText = (total / 9).toFixed(2);
         }
 
-        function applyFilter() {
-            clearInterval(liveInterval);
-            const viewType = document.getElementById("view-type").value;
-            const statusBadge = document.getElementById("mode-status");
-
-            if (viewType === "realtime") {
-                currentFilterLabel = "Realtime";
-                statusBadge.className = "status-badge realtime-mode";
-                statusBadge.innerText = "🟢 โหมดปัจจุบัน: Realtime (อัปเดตทุก 2 วิ)";
-                fetchRealtimeData();
-                liveInterval = setInterval(fetchRealtimeData, 2000);
-            } else {
-                statusBadge.className = "status-badge history-mode";
-                statusBadge.innerText = "🔵 โหมดปัจจุบัน: ดูประวัติย้อนหลัง (ค้างหน้าจอไว้)";
-                
-                if (viewType === "daily") {
-                    const dateVal = document.getElementById("date-picker").value;
-                    if(!dateVal) return alert("กรุณาเลือกวันที่");
-                    currentFilterLabel = `รายวัน_${dateVal}`;
-                    const path = `history/${dateVal.replace(/-/g, '/')}`;
-                    fetchHistoryData(path, dateVal);
-                } 
-                else if (viewType === "monthly") {
-                    const year = document.getElementById("year-picker").value;
-                    const month = document.getElementById("month-picker").value;
-                    currentFilterLabel = `รายเดือน_${month}_${year}`;
-                    fetchHistoryData(`history/${year}/${month}`, `เดือนที่ ${month} ปี ${year}`);
-                } 
-                else if (viewType === "yearly") {
-                    const year = document.getElementById("year-picker").value;
-                    currentFilterLabel = `รายปี_${year}`;
-                    fetchHistoryData(`history/${year}`, `ปี ค.ศ. ${year}`);
-                }
-            }
-        }
-
-        /* 💾 ฟังก์ชันสำหรับดาวน์โหลดไฟล์ PDF */
-        function downloadPDF() {
-            const element = document.getElementById('report-section');
-            
-            // ปรับแต่งคุณสมบัติ PDF เช่น ขนาดหน้ากระดาษ และการตั้งชื่อไฟล์
+        // ==================== ฟังก์ชันดาวน์โหลดรายงานแยกตามแท็กและส่วนงาน ====================
+        function downloadPDF(sectionId, label) {
+            const element = document.getElementById(sectionId);
             const opt = {
                 margin:       10,
-                filename:     `รายงานจำนวนคน_${currentFilterLabel}.pdf`,
+                filename:     `รายงานจำนวนคน_${label.replace(/ /g, '_')}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // ดึงเฉพาะส่วนเนื้อหาตาราง ไม่เอาปุ่มดาวน์โหลดไปไว้ใน PDF
-            const buttons = document.querySelector('.download-buttons');
-            buttons.style.visibility = 'hidden'; // ซ่อนปุ่มชั่วคราว
+            const buttons = element.querySelector('.download-buttons');
+            buttons.style.visibility = 'hidden'; 
             
             html2pdf().set(opt).from(element).save().then(() => {
-                buttons.style.visibility = 'visible'; // แสดงปุ่มกลับมาเหมือนเดิม
+                buttons.style.visibility = 'visible'; 
             });
         }
 
-        /* 💾 ฟังก์ชันสำหรับดาวน์โหลดไฟล์ Notepad (TXT) */
-        function downloadTXT() {
+        function downloadTXT(tbodyId, totalCountId, totalUnitId, avgCountId, label) {
             let txtContent = `==================================================\n`;
             txtContent += `📊 รายงานสรุปรายละเอียดข้อมูลรายกล้อง\n`;
-            txtContent += `📂 รูปแบบข้อมูล: ${currentFilterLabel.replace(/_/g, ' ')}\n`;
+            txtContent += `📂 รูปแบบข้อมูล: ${label.replace(/_/g, ' ')}\n`;
             txtContent += `⏰ เวลาที่บันทึกรายงาน: ${new Date().toLocaleString('th-TH')}\n`;
             txtContent += `==================================================\n\n`;
             txtContent += `ลำดับ\tตำแหน่ง/อุปกรณ์\t\tจำนวนที่นับได้\tหน่วย\n`;
             txtContent += `--------------------------------------------------\n`;
 
-            const rows = document.querySelectorAll("#table-body tr");
+            const rows = document.querySelectorAll(`#${tbodyId} tr`);
             rows.forEach(row => {
                 const cols = row.querySelectorAll("td");
-                const id = cols[0].innerText;
-                const name = cols[1].innerText;
-                const count = cols[2].innerText;
-                const unit = cols[3].innerText;
-                txtContent += `${id}\t${name}\t\t${count}\t\t${unit}\n`;
+                if (cols.length >= 4) {
+                    const id = cols[0].innerText;
+                    const name = cols[1].innerText;
+                    const count = cols[2].innerText;
+                    const unit = cols[3].innerText;
+                    txtContent += `${id}\t${name}\t\t${count}\t\t${unit}\n`;
+                }
             });
 
-            const totalCount = document.getElementById("total-count").innerText;
-            const totalUnit = document.getElementById("total-unit").innerText;
-            const avgCount = document.getElementById("avg-count").innerText;
+            const totalCount = document.getElementById(totalCountId).innerText;
+            const totalUnit = document.getElementById(totalUnitId).innerText;
+            const avgCount = document.getElementById(avgCountId).innerText;
 
             txtContent += `--------------------------------------------------\n`;
             txtContent += `รวมจำนวนทั้งหมด (Total):\t\t${totalCount}\t\t${totalUnit}\n`;
             txtContent += `ค่าเฉลี่ยต่อกล้อง (Average):\t\t${avgCount}\t\tคน\n`;
             txtContent += `==================================================\n`;
 
-            // สร้างไฟล์แล้วสั่งดาวน์โหลดเข้าเครื่องอัตโนมัติ
             const blob = new Blob([txtContent], { type: "text/plain;charset=utf-8;" });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `รายงานจำนวนคน_${currentFilterLabel}.txt`);
+            link.setAttribute("download", `รายงานจำนวนคน_${label.replace(/ /g, '_')}.txt`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        applyFilter();
+        // เริ่มต้นการทำงานระบบ Realtime ทันทีเมื่อเปิดหน้าเว็บบนเบราว์เซอร์
+        startRealtimeSync();
     </script>
 </body>
 </html>
