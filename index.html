@@ -19,50 +19,21 @@
         .unit { font-size: 1rem; color: #888; }
         
         /* 📋 ส่วนตารางข้อมูล (Table Style) */
-        .table-container {
-            background: white;
-            max-width: 1200px;
-            margin: 15px auto 40px auto;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-        .table-header-group {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .table-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #444;
-            text-align: left;
-            border-left: 5px solid #ffcc00;
-            padding-left: 10px;
-        }
+        .table-container { background: white; max-width: 1200px; margin: 15px auto 40px auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .table-header-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .table-title { font-size: 1.2rem; font-weight: bold; color: #444; text-align: left; border-left: 5px solid #ffcc00; padding-left: 10px; }
         .table-title.history-table-title { border-left-color: #007bff; }
         .download-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         
-        /* ฟอร์มเลือกวันที่ */
-        .filter-group { display: flex; align-items: center; gap: 8px; margin-right: 10px; }
-        .filter-group label { font-weight: bold; color: #555; font-size: 0.95rem; }
-        .input-date { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; font-family: inherit; font-size: 0.9rem; }
+        /* 🎛️ Control Panel สำหรับค้นหาประวัติย้อนหลัง */
+        .search-panel { display: flex; background: #e9ecef; padding: 15px; border-radius: 8px; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; width: 100%; box-sizing: border-box; margin-bottom: 15px; }
+        .search-group { display: flex; align-items: center; gap: 8px; }
+        .search-group label { font-weight: bold; color: #444; font-size: 0.95rem; }
+        select, .input-date { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; font-family: inherit; font-size: 0.9rem; background: white; }
 
-        .btn-download {
-            padding: 8px 14px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .btn-action { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn-search { background-color: #007bff; color: white; }
+        .btn-search:hover { background-color: #0056b3; }
         .btn-txt { background-color: #28a745; color: white; }
         .btn-txt:hover { background-color: #218838; }
 
@@ -83,12 +54,6 @@
         .table-scrollable { max-height: 500px; overflow-y: auto; margin-top: 10px; border: 1px solid #e0e0e0; border-radius: 8px; }
         .table-scrollable table { margin-top: 0; }
         .table-scrollable th { position: sticky; top: 0; background-color: #f1f3f5; z-index: 5; }
-        .new-row-highlight { animation: highlightFade 2s ease-in-out; }
-        
-        @keyframes highlightFade {
-            0% { background-color: #e2f0ff; }
-            100% { background-color: transparent; }
-        }
 
         hr { border: 0; height: 2px; background: #ddd; max-width: 1200px; margin: 40px auto; }
     </style>
@@ -103,22 +68,18 @@
     <p style="margin-top: 5px;">เวลาข้อมูลล่าสุดในระบบ: <span id="rt-time" style="font-weight: bold; color: #222;">กำลังโหลด...</span></p>
 
     <div class="grid-container">
-        <div class="card" id="rt-card1"><div class="cam-title">กล้อง 1</div><div class="count" id="rt-cam1">-</div><div class="unit">คน</div></div>
-        <div class="card" id="rt-card2"><div class="cam-title">กล้อง 2</div><div class="count" id="rt-cam2">-</div><div class="unit">คน</div></div>
-        <div class="card" id="rt-card3"><div class="cam-title">กล้อง 3</div><div class="count" id="rt-cam3">-</div><div class="unit">คน</div></div>
-        <div class="card" id="rt-card4"><div class="cam-title">กล้อง 4</div><div class="count" id="rt-cam4">-</div><div class="unit">คน</div></div>
-        <div class="card" id="rt-card5"><div class="cam-title">กล้อง 5</div><div class="count" id="rt-cam5">-</div><div class="unit">คน</div></div>
-        <div class="card" id="rt-card6"><div class="cam-title">กล้อง 6</div><div class="count" id="rt-cam6">-</div><div class="unit">คน</div></div>
-        <div class="card" id="rt-card7"><div class="cam-title">กล้อง 7</div><div class="count" id="rt-cam7">-</div><div class="unit">คน</div></div>
-        <div class="card" id="rt-card8"><div class="cam-title">กล้อง 8</div><div class="count" id="rt-cam8">-</div><div class="unit">คน</div></div>
-        <div class="card" id="rt-card9"><div class="cam-title">กล้อง 9</div><div class="count" id="rt-cam9">-</div><div class="unit">คน</div></div>
+        <script>
+            for(let i=1; i<=9; i++) {
+                document.write(`<div class="card" id="rt-card${i}"><div class="cam-title">กล้อง ${i}</div><div class="count" id="rt-cam${i}">-</div><div class="unit">คน</div></div>`);
+            }
+        </script>
     </div>
 
     <div class="table-container" id="rt-report-section">
         <div class="table-header-group">
             <div class="table-title">📋 ตารางสรุปข้อมูลรายกล้อง (ณ เวลาปัจจุบัน)</div>
             <div class="download-buttons">
-                <button class="btn-download btn-txt" onclick="downloadTXTRealtime()">📝 ดาวน์โหลด Notepad (TXT)</button>
+                <button class="btn-action btn-txt" onclick="downloadTXTRealtime()">📝 ดาวน์โหลด Notepad (TXT)</button>
             </div>
         </div>
         <table>
@@ -148,20 +109,34 @@
 
     <hr>
 
-    <div class="section-title history-title">🔵 ส่วนที่ 2: บันทึกข้อมูลประวัติย้อนหลังค้นหาตามวันเวลา (History Log)</div>
-    <div class="status-badge history-mode">ดึงข้อมูลอัตโนมัติทุก 5 วินาที • เลือก วัน/เดือน/ปี เพื่อกรองดูรายงานเฉพาะวันได้</div>
-    <p style="margin-top: 5px;">จำนวนข้อมูลที่แสดงอยู่ขณะนี้: <span id="hist-log-count" style="font-weight: bold; color: #004085;">0</span> ชุดเวลา</p>
+    <div class="section-title history-title">🔵 ส่วนที่ 2: บันทึกข้อมูลประวัติย้อนหลังค้นหาตามช่วงเวลา (History Log)</div>
+    <div class="status-badge history-mode">ระบบดึงข้อมูลตามเงื่อนไขเพื่อความรวดเร็วและไม่หน่วงเบราว์เซอร์</div>
+    <p style="margin-top: 5px;">จำนวนข้อมูลที่ค้นพบขณะนี้: <span id="hist-log-count" style="font-weight: bold; color: #004085;">0</span> ชุดเวลา</p>
 
     <div class="table-container">
-        <div class="table-header-group">
-            <div class="table-title history-table-title">📋 ตารางแสดง Log ประวัติย้อนหลังแสดงพร้อมกัน 9 กล้อง</div>
-            <div class="download-buttons">
-                <div class="filter-group">
-                    <label for="history-date-filter">ค้นหาย้อนหลัง:</label>
-                    <input type="date" id="history-date-filter" class="input-date" onchange="renderHistoryTable()">
-                </div>
-                <button class="btn-download btn-txt" onclick="downloadTXTHistory()">📝 ดาวน์โหลดผลที่ค้นหา (TXT)</button>
+        <div class="search-panel">
+            <div class="search-group">
+                <label>รูปแบบประวัติ:</label>
+                <select id="search-mode" onchange="toggleSearchInputs()">
+                    <option value="daily">🔍 เรียกดูรายวัน (ระบุวันที่)</option>
+                    <option value="monthly">📅 เรียกดูรายเดือน (ระบุเดือน)</option>
+                    <option value="yearly">🗓️ เรียกดูรายปี (ระบุปี)</option>
+                </select>
             </div>
+
+            <div class="search-group" id="container-daily">
+                <input type="date" id="search-date" class="input-date">
+            </div>
+            <div class="search-group" id="container-monthly" style="display:none;">
+                <input type="month" id="search-month" class="input-date">
+            </div>
+            <div class="search-group" id="container-yearly" style="display:none;">
+                <label>ระบุปี ค.ศ.:</label>
+                <input type="number" id="search-year" class="input-date" min="2020" max="2035" value="2026" style="width: 80px;">
+            </div>
+
+            <button class="btn-action btn-search" onclick="fetchHistoryReport()">⚡ ดึงข้อมูลสถิติ</button>
+            <button class="btn-action btn-txt" onclick="downloadTXTHistory()">📝 ดาวน์โหลดผลที่ค้นหา (TXT)</button>
         </div>
         
         <div class="table-scrollable">
@@ -182,28 +157,40 @@
                     </tr>
                 </thead>
                 <tbody id="hist-table-body">
-                    <tr id="no-history-row"><td colspan="11" style="color:#999; padding: 30px;">กำลังรอรับสัญญาณข้อมูลประวัติชุดแรกภายใน 5 วินาที...</td></tr>
+                    <tr><td colspan="11" style="color:#999; padding: 40px;">กรุณาเลือกช่วงเวลาที่ต้องการสืบค้น แล้วกดปุ่ม "ดึงข้อมูลสถิติ"</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        const dbBaseUrl = "https://cctc3-82c63-default-rtdb.asia-southeast1.firebasedatabase.app/";
-        
-        let historicalLogList = []; 
-        let lastLoggedTime = ""; 
+        // หมายเหตุ: ใช้ URL หลักของโปรเจกต์ และอ้างอิงข้อมูล Realtime จาก 'realtime.json' และประวัติจาก 'logs/'
+        const dbBaseUrl = "https://cctc3-82c63-default-rtdb.asia-southeast1.firebasedatabase.app";
+        let searchedHistoryList = []; 
 
-        // ตรวจสอบและดึงข้อมูลวันที่ปัจจุบันตั้งค่าเริ่มต้นให้กับตรรกะกรองหน้าเว็บ
+        // ตั้งค่าเริ่มต้นให้กับช่องค้นหาเมื่อเปิดหน้าเว็บ
         window.addEventListener('DOMContentLoaded', () => {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('history-date-filter').value = today;
+            const today = new Date();
+            document.getElementById('search-date').value = today.toISOString().split('T')[0];
+            document.getElementById('search-month').value = today.toISOString().slice(0, 7);
+            document.getElementById('search-year').value = today.getFullYear();
+            
+            startRealtimeSync();
         });
+
+        // ฟังก์ชันสลับกล่องรับข้อมูลสำหรับ UI
+        function toggleSearchInputs() {
+            const mode = document.getElementById("search-mode").value;
+            document.getElementById("container-daily").style.display = mode === 'daily' ? 'block' : 'none';
+            document.getElementById("container-monthly").style.display = mode === 'monthly' ? 'block' : 'none';
+            document.getElementById("container-yearly").style.display = mode === 'yearly' ? 'block' : 'none';
+        }
 
         // ==================== [ส่วนที่ 1] LOGIC REALTIME (2 วินาที) ====================
         function startRealtimeSync() {
             function fetchRealtime() {
-                fetch(`${dbBaseUrl}data.json`)
+                // ดึงข้อมูล Node สดจากตำแหน่ง 'realtime.json' ที่สอดคล้องกับ Python Script เวอร์ชันใหม่
+                fetch(`${dbBaseUrl}/realtime.json`)
                     .then(response => response.json())
                     .then(data => {
                         if(data) {
@@ -241,98 +228,82 @@
             document.getElementById("rt-avg-count").innerText = (total / 9).toFixed(2);
         }
 
-
-        // ==================== [ส่วนที่ 2] LOGIC HISTORY LOG + FILTERING ====================
-        function startHistoryLogSync() {
-            function fetchHistoryLog() {
-                fetch(`${dbBaseUrl}data.json`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if(data) {
-                            const currentTime = data.last_update || new Date().toLocaleString('th-TH');
-                            
-                            if (currentTime === lastLoggedTime) return; 
-                            lastLoggedTime = currentTime;
-
-                            let rowTotal = 0;
-                            let camValues = [];
-                            for(let i=1; i<=9; i++) {
-                                let val = data[`cam${i}`] !== undefined ? Number(data[`cam${i}`]) : 0;
-                                camValues.push(val);
-                                rowTotal += val;
-                            }
-
-                            // แตกข้อมูลเพื่อจับคู่กับตัวเช็คความถูกต้องของ วัน/เดือน/ปี
-                            let dateKey = "";
-                            if(data.last_update) {
-                                // พยายามแกะวันที่จากข้อมูล Firebase (สมมติฟอร์แมตมาตรฐานคือ DD/MM/YYYY หรือ YYYY-MM-DD)
-                                // เพื่อความเสถียร หากดึงแกะจากสตริงไม่ได้ จะใช้ระบบแปลงวันที่ของเครื่องเซสชันปัจจุบันมาร่วมบันทึก
-                                const parts = data.last_update.split(' ');
-                                if(parts[0] && parts[0].includes('/')) {
-                                    const dParts = parts[0].split('/');
-                                    // แปลงให้อยู่ในฟอร์แมต YYYY-MM-DD
-                                    if(dParts[2] && dParts[1] && dParts[0]) {
-                                        let year = dParts[2].length === 4 ? dParts[2] : new Date().getFullYear();
-                                        dateKey = `${year}-${dParts[1].padStart(2,'0')}-${dParts[0].padStart(2,'0')}`;
-                                    }
-                                }
-                            }
-                            
-                            if(!dateKey) {
-                                dateKey = new Date().toISOString().split('T')[0];
-                            }
-
-                            // เพิ่มพารามิเตอร์เก็บตัวแปร rawDate สำหรับฟังก์ชันสืบค้นคัดกรองย้อนหลัง
-                            historicalLogList.unshift({
-                                rawDate: dateKey,
-                                time: currentTime,
-                                cams: camValues,
-                                total: rowTotal,
-                                isNew: true // มาร์กไว้เพื่อทำไฮไลต์เอฟเฟกต์เฉพาะแถวที่พึ่งวิ่งเข้าสดๆ
-                            });
-
-                            renderHistoryTable();
-                        }
-                    }).catch(err => console.error("History Log Error:", err));
-            }
-            fetchHistoryLog(); 
-            setInterval(fetchHistoryLog, 5000);
-        }
-
-        // ฟังก์ชันหัวใจหลักในการคัดกรองข้อมูลตามวัน เดือน ปี บนหน้าเว็บและตารางย้อนหลัง
-        function renderHistoryTable() {
-            const selectedDate = document.getElementById("history-date-filter").value;
+        // ==================== [ส่วนที่ 2] LOGIC DYNAMIC HISTORY (วัน/เดือน/ปี) ====================
+        function fetchHistoryReport() {
+            const mode = document.getElementById("search-mode").value;
             const tbody = document.getElementById("hist-table-body");
-            tbody.innerHTML = "";
-
-            // กรองข้อมูลเฉพาะวันที่เลือก
-            const filteredData = historicalLogList.filter(item => !selectedDate || item.rawDate === selectedDate);
+            tbody.innerHTML = `<tr><td colspan="11" style="color:#007bff; padding:30px;">🔄 กำลังดึงฐานข้อมูลและประมวลผลสถิติความละเอียดสูง...</td></tr>`;
             
-            document.getElementById("hist-log-count").innerText = filteredData.length;
+            let targetPath = "";
 
-            if(filteredData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" style="color:#999; padding: 30px;">ไม่พบประวัติข้อมูลของวันที่ ${selectedDate || 'ที่เลือก'}</td></tr>`;
-                return;
+            if (mode === 'daily') {
+                const dateVal = document.getElementById("search-date").value;
+                if(!dateVal) return alert("กรุณาระบุวันที่");
+                const [y, m, d] = dateVal.split("-");
+                targetPath = `/logs/${y}/${m}/${d}.json`;
+            } else if (mode === 'monthly') {
+                const monthVal = document.getElementById("search-month").value;
+                if(!monthVal) return alert("กรุณาระบุเดือน");
+                const [y, m] = monthVal.split("-");
+                targetPath = `/logs/${y}/${m}.json`;
+            } else {
+                const y = document.getElementById("search-year").value;
+                if(!y) return alert("กรุณาระบุปี");
+                targetPath = `/logs/${y}.json`;
             }
 
-            filteredData.forEach(item => {
-                const newRow = document.createElement("tr");
-                if (item.isNew) {
-                    newRow.className = "new-row-highlight";
-                    item.isNew = false; // ปิดสถานะหลังสร้างภาพเสร็จเพื่อป้องกันกระพริบตอนกรองซ้ำ
-                }
+            fetch(`${dbBaseUrl}${targetPath}`)
+                .then(res => res.json())
+                .then(data => {
+                    searchedHistoryList = []; // ล้างอาเรย์ชั่วคราว
+                    
+                    if (!data) {
+                        tbody.innerHTML = `<tr><td colspan="11" style="color:#999; padding:30px;">❌ ไม่พบประวัติการจัดเก็บข้อมูลในช่วงเวลาที่เลือก</td></tr>`;
+                        document.getElementById("hist-log-count").innerText = "0";
+                        return;
+                    }
 
-                let rowHTML = `<td style="font-weight:bold; color:#0056b3; background-color:#f8f9fa;">${item.time}</td>`;
-                for(let i=0; i<9; i++) {
-                    rowHTML += `<td style="font-weight:600;">${item.cams[i]}</td>`;
-                }
-                rowHTML += `<td style="background-color:#e9ecef; font-weight:bold; color:#d9381e;">${item.total}</td>`;
-                
-                newRow.innerHTML = rowHTML;
-                tbody.appendChild(newRow);
-            });
+                    // แกะแผนผังวัตถุรังผึ้งชั้นลึก (Recursive Object Flattening)
+                    flattenFirebaseTree(data);
+
+                    // เรียงข้อมูลตามวันเวลาจากล่าสุดขึ้นก่อน (Newest to Oldest)
+                    searchedHistoryList.sort((a, b) => b.time.localeCompare(a.time));
+
+                    document.getElementById("hist-log-count").innerText = searchedHistoryList.length;
+                    tbody.innerHTML = "";
+
+                    searchedHistoryList.forEach(item => {
+                        let rowHTML = `<tr><td style="font-weight:bold; color:#0056b3; background-color:#f8f9fa;">${item.time}</td>`;
+                        item.cams.forEach(val => { rowHTML += `<td style="font-weight:600;">${val}</td>`; });
+                        rowHTML += `<td style="background-color:#e9ecef; font-weight:bold; color:#d9381e;">${item.total}</td></tr>`;
+                        tbody.innerHTML += rowHTML;
+                    });
+                })
+                .catch(err => {
+                    console.error("History retrieval error:", err);
+                    tbody.innerHTML = `<tr><td colspan="11" style="color:red; padding:30px;">เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูลย้อนหลัง</td></tr>`;
+                });
         }
 
+        // ฟังก์ชันแกะโครงสร้าง Object ชั้นซ้อนกันของ Firebase ให้ออกมาเป็นลิสต์เรียงระดับเดียว
+        function flattenFirebaseTree(node) {
+            if (node.hasOwnProperty('last_update')) {
+                let camValues = [];
+                let total = 0;
+                for(let i=1; i<=9; i++) {
+                    let v = node[`cam${i}`] !== undefined ? Number(node[`cam${i}`]) : 0;
+                    camValues.push(v);
+                    total += v;
+                }
+                searchedHistoryList.push({ time: node.last_update, cams: camValues, total: total });
+            } else {
+                for (let key in node) {
+                    if (node[key] && typeof node[key] === 'object') {
+                        flattenFirebaseTree(node[key]);
+                    }
+                }
+            }
+        }
 
         // ==================== [ระบบส่งออกข้อมูลเป็นไฟล์ Notepad (TXT)] ====================
         function downloadTXTRealtime() {
@@ -360,28 +331,26 @@
         }
 
         function downloadTXTHistory() {
-            const selectedDate = document.getElementById("history-date-filter").value;
-            const filteredData = historicalLogList.filter(item => !selectedDate || item.rawDate === selectedDate);
-
-            if(filteredData.length === 0) return alert("ยังไม่มีข้อมูลของวันที่เลือกให้ดาวน์โหลด");
+            if(searchedHistoryList.length === 0) return alert("ไม่พบข้อมูลสถิติในตารางสืบค้น ไม่สามารถส่งออกรายงานได้");
+            const mode = document.getElementById("search-mode").value;
 
             let txtContent = `==========================================================================================\n`;
-            txtContent += `📊 รายงานสถิติบันทึกข้อมูลย้อนหลังแยกรายกล้องต่อเนื่อง (History Log)\n`;
-            txtContent += `📅 ประจำวันที่ค้นหา: ${selectedDate || 'ทั้งหมด'} | ดึงไฟล์เมื่อ: ${new Date().toLocaleTimeString('th-TH')}\n`;
+            txtContent += `📊 รายงานสถิติบันทึกข้อมูลย้อนหลังแบบละเอียด (${mode.toUpperCase()} REPORT)\n`;
+            txtContent += `📅 วันที่ส่งออกไฟล์เอกสาร: ${new Date().toLocaleString('th-TH')}\n`;
             txtContent += `==========================================================================================\n\n`;
             txtContent += `เวลาบันทึก\t\tCam1\tCam2\tCam3\tCam4\tCam5\tCam6\tCam7\tCam8\tCam9\tรวมทั้งหมด\n`;
             txtContent += `------------------------------------------------------------------------------------------\n`;
 
-            filteredData.forEach(item => {
+            searchedHistoryList.forEach(item => {
                 let camLine = item.cams.join('\t');
                 txtContent += `${item.time}\t${camLine}\t${item.total}\n`;
             });
 
             txtContent += `------------------------------------------------------------------------------------------\n`;
-            txtContent += `รวมบันทึกข้อมูลที่กรองค้นหาได้ทั้งหมดจำนวน: ${filteredData.length} ชุดเวลาสุทธิ\n`;
+            txtContent += `รวมรายการข้อมูลประวัติที่ถูกดึงออกมาสรุปทั้งสิ้น: ${searchedHistoryList.length} ชุดช่วงเวลา\n`;
             txtContent += `==========================================================================================\n`;
 
-            saveFileBlob(txtContent, `ประวัติย้อนหลัง_วันที่_${selectedDate || 'ALL'}.txt`);
+            saveFileBlob(txtContent, `ประวัติย้อนหลัง_รายงาน_${mode}.txt`);
         }
 
         function saveFileBlob(content, filename) {
@@ -393,10 +362,6 @@
             link.click();
             document.body.removeChild(link);
         }
-
-        // สั่งเปิดระบบทำงานพร้อมกันทั้งหมดเมื่อเปิดหน้าเพจ
-        startRealtimeSync();
-        startHistoryLogSync();
     </script>
 </body>
 </html>
