@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบนับจำนวนคน Realtime & ประวัติย้อนหลัง - 9 กล้อง</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; text-align: center; }
         h1 { color: #333; margin-bottom: 5px; }
@@ -61,15 +62,43 @@
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
+        .table-header-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
         .table-title {
             font-size: 1.3rem;
             font-weight: bold;
             color: #444;
-            margin-bottom: 15px;
             text-align: left;
             border-left: 5px solid #007bff;
             padding-left: 10px;
         }
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-download {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-pdf { background-color: #dc3545; color: white; }
+        .btn-pdf:hover { background-color: #bd2130; }
+        .btn-txt { background-color: #28a745; color: white; }
+        .btn-txt:hover { background-color: #218838; }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -163,9 +192,15 @@
         <div class="card" id="card9"><div class="cam-title">กล้อง 9</div><div class="count" id="cam9">-</div><div class="unit" id="unit9">คน</div></div>
     </div>
 
-    <div class="table-container">
-        <div class="table-title">📋 ตารางสรุปรายละเอียดข้อมูลรายกล้อง</div>
-        <table>
+    <div class="table-container" id="report-section">
+        <div class="table-header-group">
+            <div class="table-title">📋 ตารางสรุปรายละเอียดข้อมูลรายกล้อง</div>
+            <div class="download-buttons">
+                <button class="btn-download btn-pdf" onclick="downloadPDF()">📄 ดาวน์โหลด PDF</button>
+                <button class="btn-download btn-txt" onclick="downloadTXT()">📝 ดาวน์โหลด Notepad (TXT)</button>
+            </div>
+        </div>
+        <table id="data-table">
             <thead>
                 <tr>
                     <th>ลำดับบรรทัด</th>
@@ -175,7 +210,7 @@
                 </tr>
             </thead>
             <tbody id="table-body">
-                </tbody>
+            </tbody>
             <tfoot>
                 <tr class="summary-row">
                     <td colspan="2">รวมจำนวนทั้งหมด (Total)</td>
@@ -194,6 +229,7 @@
     <script>
         const dbBaseUrl = "https://cctc3-82c63-default-rtdb.asia-southeast1.firebasedatabase.app/";
         let liveInterval = null;
+        let currentFilterLabel = "Realtime"; // เก็บชื่อตัวกรองปัจจุบันไว้ใช้ตั้งชื่อไฟล์
 
         document.getElementById('date-picker').value = new Date().toISOString().split('T')[0];
 
@@ -261,7 +297,7 @@
 
         function updateDisplay(data, unitText, isHistory) {
             const tableBody = document.getElementById("table-body");
-            tableBody.innerHTML = ""; // ล้างข้อมูลเก่าในตารางก่อนหน้า
+            tableBody.innerHTML = ""; 
             
             let total = 0;
 
@@ -269,14 +305,12 @@
                 const countValue = data[`cam${i}`] !== undefined ? data[`cam${i}`] : 0;
                 total += Number(countValue);
 
-                // 1. อัปเดตข้อมูลในรูปแบบกล่องข้อความ (Grid Cards) เดิม
                 document.getElementById(`cam${i}`).innerText = countValue;
                 document.getElementById(`unit${i}`).innerText = unitText;
                 
                 const card = document.getElementById(`card${i}`);
                 if (isHistory) card.classList.add('historical'); else card.classList.remove('historical');
 
-                // 2. สร้างแถวข้อมูล (Rows) และบรรทัดใส่ตาราง (Table) ใหม่
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${i}</td>
@@ -287,7 +321,6 @@
                 tableBody.appendChild(row);
             }
 
-            // 3. อัปเดตแถวสรุปผลรวมและค่าเฉลี่ยที่ท้ายตาราง
             document.getElementById("total-count").innerText = total;
             document.getElementById("total-unit").innerText = unitText;
             document.getElementById("avg-count").innerText = (total / 9).toFixed(2);
@@ -299,6 +332,7 @@
             const statusBadge = document.getElementById("mode-status");
 
             if (viewType === "realtime") {
+                currentFilterLabel = "Realtime";
                 statusBadge.className = "status-badge realtime-mode";
                 statusBadge.innerText = "🟢 โหมดปัจจุบัน: Realtime (อัปเดตทุก 2 วิ)";
                 fetchRealtimeData();
@@ -310,19 +344,83 @@
                 if (viewType === "daily") {
                     const dateVal = document.getElementById("date-picker").value;
                     if(!dateVal) return alert("กรุณาเลือกวันที่");
+                    currentFilterLabel = `รายวัน_${dateVal}`;
                     const path = `history/${dateVal.replace(/-/g, '/')}`;
                     fetchHistoryData(path, dateVal);
                 } 
                 else if (viewType === "monthly") {
                     const year = document.getElementById("year-picker").value;
                     const month = document.getElementById("month-picker").value;
+                    currentFilterLabel = `รายเดือน_${month}_${year}`;
                     fetchHistoryData(`history/${year}/${month}`, `เดือนที่ ${month} ปี ${year}`);
                 } 
                 else if (viewType === "yearly") {
                     const year = document.getElementById("year-picker").value;
+                    currentFilterLabel = `รายปี_${year}`;
                     fetchHistoryData(`history/${year}`, `ปี ค.ศ. ${year}`);
                 }
             }
+        }
+
+        /* 💾 ฟังก์ชันสำหรับดาวน์โหลดไฟล์ PDF */
+        function downloadPDF() {
+            const element = document.getElementById('report-section');
+            
+            // ปรับแต่งคุณสมบัติ PDF เช่น ขนาดหน้ากระดาษ และการตั้งชื่อไฟล์
+            const opt = {
+                margin:       10,
+                filename:     `รายงานจำนวนคน_${currentFilterLabel}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // ดึงเฉพาะส่วนเนื้อหาตาราง ไม่เอาปุ่มดาวน์โหลดไปไว้ใน PDF
+            const buttons = document.querySelector('.download-buttons');
+            buttons.style.visibility = 'hidden'; // ซ่อนปุ่มชั่วคราว
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                buttons.style.visibility = 'visible'; // แสดงปุ่มกลับมาเหมือนเดิม
+            });
+        }
+
+        /* 💾 ฟังก์ชันสำหรับดาวน์โหลดไฟล์ Notepad (TXT) */
+        function downloadTXT() {
+            let txtContent = `==================================================\n`;
+            txtContent += `📊 รายงานสรุปรายละเอียดข้อมูลรายกล้อง\n`;
+            txtContent += `📂 รูปแบบข้อมูล: ${currentFilterLabel.replace(/_/g, ' ')}\n`;
+            txtContent += `⏰ เวลาที่บันทึกรายงาน: ${new Date().toLocaleString('th-TH')}\n`;
+            txtContent += `==================================================\n\n`;
+            txtContent += `ลำดับ\tตำแหน่ง/อุปกรณ์\t\tจำนวนที่นับได้\tหน่วย\n`;
+            txtContent += `--------------------------------------------------\n`;
+
+            const rows = document.querySelectorAll("#table-body tr");
+            rows.forEach(row => {
+                const cols = row.querySelectorAll("td");
+                const id = cols[0].innerText;
+                const name = cols[1].innerText;
+                const count = cols[2].innerText;
+                const unit = cols[3].innerText;
+                txtContent += `${id}\t${name}\t\t${count}\t\t${unit}\n`;
+            });
+
+            const totalCount = document.getElementById("total-count").innerText;
+            const totalUnit = document.getElementById("total-unit").innerText;
+            const avgCount = document.getElementById("avg-count").innerText;
+
+            txtContent += `--------------------------------------------------\n`;
+            txtContent += `รวมจำนวนทั้งหมด (Total):\t\t${totalCount}\t\t${totalUnit}\n`;
+            txtContent += `ค่าเฉลี่ยต่อกล้อง (Average):\t\t${avgCount}\t\tคน\n`;
+            txtContent += `==================================================\n`;
+
+            // สร้างไฟล์แล้วสั่งดาวน์โหลดเข้าเครื่องอัตโนมัติ
+            const blob = new Blob([txtContent], { type: "text/plain;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `รายงานจำนวนคน_${currentFilterLabel}.txt`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         applyFilter();
