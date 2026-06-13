@@ -67,13 +67,7 @@
     <div class="status-badge realtime-mode">อัปเดตอัตโนมัติทุก 2 วินาที</div>
     <p style="margin-top: 5px;">เวลาข้อมูลล่าสุดในระบบ: <span id="rt-time" style="font-weight: bold; color: #222;">กำลังโหลด...</span></p>
 
-    <div class="grid-container">
-        <script>
-            for(let i=1; i<=9; i++) {
-                document.write(`<div class="card" id="rt-card${i}"><div class="cam-title">กล้อง ${i}</div><div class="count" id="rt-cam${i}">-</div><div class="unit">คน</div></div>`);
-            }
-        </script>
-    </div>
+    <div class="grid-container" id="camera-grid"></div>
 
     <div class="table-container" id="rt-report-section">
         <div class="table-header-group">
@@ -164,17 +158,26 @@
     </div>
 
     <script>
-        // หมายเหตุ: ใช้ URL หลักของโปรเจกต์ และอ้างอิงข้อมูล Realtime จาก 'realtime.json' และประวัติจาก 'logs/'
         const dbBaseUrl = "https://cctc3-82c63-default-rtdb.asia-southeast1.firebasedatabase.app/";
         let searchedHistoryList = []; 
 
-        // ตั้งค่าเริ่มต้นให้กับช่องค้นหาเมื่อเปิดหน้าเว็บ
+        // ตั้งค่าเริ่มต้นให้กับช่องค้นหาและสร้าง Card กล้องแบบปลอดภัยเมื่อเปิดหน้าเว็บ
         window.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             document.getElementById('search-date').value = today.toISOString().split('T')[0];
             document.getElementById('search-month').value = today.toISOString().slice(0, 7);
             document.getElementById('search-year').value = today.getFullYear();
             
+            // สร้างกล้อง 1-9 ใน Grid ด้วย DOM API (แทน document.write)
+            const gridContainer = document.getElementById("camera-grid");
+            for(let i = 1; i <= 9; i++) {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.id = `rt-card${i}`;
+                card.innerHTML = `<div class="cam-title">กล้อง ${i}</div><div class="count" id="rt-cam${i}">-</div><div class="unit">คน</div>`;
+                gridContainer.appendChild(card);
+            }
+
             startRealtimeSync();
         });
 
@@ -189,15 +192,19 @@
         // ==================== [ส่วนที่ 1] LOGIC REALTIME (2 วินาที) ====================
         function startRealtimeSync() {
             function fetchRealtime() {
-                // ดึงข้อมูล Node สดจากตำแหน่ง 'realtime.json' ที่สอดคล้องกับ Python Script เวอร์ชันใหม่
                 fetch(`${dbBaseUrl}/realtime.json`)
                     .then(response => response.json())
                     .then(data => {
                         if(data) {
                             document.getElementById("rt-time").innerText = data.last_update || "ไม่มีข้อมูลเวลา";
                             updateRealtimeDisplay(data);
+                        } else {
+                            document.getElementById("rt-time").innerText = "ไม่พบข้อมูลในระบบ";
                         }
-                    }).catch(err => console.error("Realtime Error:", err));
+                    }).catch(err => {
+                        console.error("Realtime Error:", err);
+                        document.getElementById("rt-time").innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ";
+                    });
             }
             fetchRealtime();
             setInterval(fetchRealtime, 2000);
@@ -212,7 +219,8 @@
                 const countValue = data[`cam${i}`] !== undefined ? Number(data[`cam${i}`]) : 0;
                 total += countValue;
 
-                document.getElementById(`rt-cam${i}`).innerText = countValue;
+                const camEl = document.getElementById(`rt-cam${i}`);
+                if (camEl) camEl.innerText = countValue;
 
                 const row = document.createElement("tr");
                 row.innerHTML = `
@@ -255,7 +263,7 @@
             fetch(`${dbBaseUrl}${targetPath}`)
                 .then(res => res.json())
                 .then(data => {
-                    searchedHistoryList = []; // ล้างอาเรย์ชั่วคราว
+                    searchedHistoryList = []; 
                     
                     if (!data) {
                         tbody.innerHTML = `<tr><td colspan="11" style="color:#999; padding:30px;">❌ ไม่พบประวัติการจัดเก็บข้อมูลในช่วงเวลาที่เลือก</td></tr>`;
@@ -263,21 +271,22 @@
                         return;
                     }
 
-                    // แกะแผนผังวัตถุรังผึ้งชั้นลึก (Recursive Object Flattening)
                     flattenFirebaseTree(data);
 
-                    // เรียงข้อมูลตามวันเวลาจากล่าสุดขึ้นก่อน (Newest to Oldest)
+                    // เรียงข้อมูลตามวันเวลาจากล่าสุดขึ้นก่อน
                     searchedHistoryList.sort((a, b) => b.time.localeCompare(a.time));
 
                     document.getElementById("hist-log-count").innerText = searchedHistoryList.length;
-                    tbody.innerHTML = "";
-
+                    
+                    // เพิ่มประสิทธิภาพความเร็วด้วยการต่อ String รอบเดียวแล้วเขียนลง DOM (ลด UI Lag)
+                    let fullRowsHTML = "";
                     searchedHistoryList.forEach(item => {
                         let rowHTML = `<tr><td style="font-weight:bold; color:#0056b3; background-color:#f8f9fa;">${item.time}</td>`;
                         item.cams.forEach(val => { rowHTML += `<td style="font-weight:600;">${val}</td>`; });
                         rowHTML += `<td style="background-color:#e9ecef; font-weight:bold; color:#d9381e;">${item.total}</td></tr>`;
-                        tbody.innerHTML += rowHTML;
+                        fullRowsHTML += rowHTML;
                     });
+                    tbody.innerHTML = fullRowsHTML;
                 })
                 .catch(err => {
                     console.error("History retrieval error:", err);
@@ -285,9 +294,8 @@
                 });
         }
 
-        // ฟังก์ชันแกะโครงสร้าง Object ชั้นซ้อนกันของ Firebase ให้ออกมาเป็นลิสต์เรียงระดับเดียว
         function flattenFirebaseTree(node) {
-            if (node.hasOwnProperty('last_update')) {
+            if (node && node.hasOwnProperty('last_update')) {
                 let camValues = [];
                 let total = 0;
                 for(let i=1; i<=9; i++) {
@@ -315,7 +323,8 @@
             txtContent += `--------------------------------------------------\n`;
 
             for(let i=1; i<=9; i++) {
-                const count = document.getElementById(`rt-cam${i}`).innerText;
+                const camCountEl = document.getElementById(`rt-cam${i}`);
+                const count = camCountEl ? camCountEl.innerText : "-";
                 txtContent += `${i}\tกล้องตัวที่ ${i}\t\t${count}\t\tคน\n`;
             }
 
@@ -354,7 +363,8 @@
         }
 
         function saveFileBlob(content, filename) {
-            const blob = new Blob([content], { type: "text/plain;charset=utf-8;" });
+            // เติม BOM (\uFEFF) นำหน้าเพื่อป้องกันภาษาไทยแสดงผลเพี้ยน (ต่างดาว) ในโปรแกรมอย่าง Notepad
+            const blob = new Blob(["\uFEFF" + content], { type: "text/plain;charset=utf-8;" });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.setAttribute("download", filename);
