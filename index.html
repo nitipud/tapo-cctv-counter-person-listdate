@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบนับจำนวนคน Realtime & บันทึกประวัติย้อนหลังต่อเนิ่อง - 9 กล้อง</title>
+    <title>ระบบนับจำนวนคน Realtime & ค้นหาประวัติย้อนหลัง - 9 กล้อง</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; text-align: center; }
         h1 { color: #333; margin-bottom: 5px; }
@@ -44,7 +44,13 @@
             padding-left: 10px;
         }
         .table-title.history-table-title { border-left-color: #007bff; }
-        .download-buttons { display: flex; gap: 10px; }
+        .download-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        
+        /* ฟอร์มเลือกวันที่ */
+        .filter-group { display: flex; align-items: center; gap: 8px; margin-right: 10px; }
+        .filter-group label { font-weight: bold; color: #555; font-size: 0.95rem; }
+        .input-date { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; font-family: inherit; font-size: 0.9rem; }
+
         .btn-download {
             padding: 8px 14px;
             border: none;
@@ -90,7 +96,7 @@
 <body>
 
     <h1>📊 ระบบจัดการข้อมูลจำนวนคนแยกส่วนการทำงาน</h1>
-    <p style="color:#666; margin-bottom: 25px;">แสดงข้อมูลสด Realtime (ส่วนบน) และบันทึกประวัติย้อนหลังเรียงลำดับต่อเนื่อง (ส่วนล่าง)</p>
+    <p style="color:#666; margin-bottom: 25px;">แสดงข้อมูลสด Realtime (ส่วนบน) และบันทึกประวัติค้นหาย้อนหลัง (ส่วนล่าง)</p>
 
     <div class="section-title realtime-title">🟢 ส่วนที่ 1: ระบบนับจำนวนคนแบบสดปัจจุบัน (Realtime)</div>
     <div class="status-badge realtime-mode">อัปเดตอัตโนมัติทุก 2 วินาที</div>
@@ -100,7 +106,7 @@
         <div class="card" id="rt-card1"><div class="cam-title">กล้อง 1</div><div class="count" id="rt-cam1">-</div><div class="unit">คน</div></div>
         <div class="card" id="rt-card2"><div class="cam-title">กล้อง 2</div><div class="count" id="rt-cam2">-</div><div class="unit">คน</div></div>
         <div class="card" id="rt-card3"><div class="cam-title">กล้อง 3</div><div class="count" id="rt-cam3">-</div><div class="unit">คน</div></div>
-        <div class="card" id="rt-card4"><div class="cam-title">กล้อง 4</div><div class="count" id="rt-card4">-</div><div class="unit">คน</div></div>
+        <div class="card" id="rt-card4"><div class="cam-title">กล้อง 4</div><div class="count" id="rt-cam4">-</div><div class="unit">คน</div></div>
         <div class="card" id="rt-card5"><div class="cam-title">กล้อง 5</div><div class="count" id="rt-cam5">-</div><div class="unit">คน</div></div>
         <div class="card" id="rt-card6"><div class="cam-title">กล้อง 6</div><div class="count" id="rt-cam6">-</div><div class="unit">คน</div></div>
         <div class="card" id="rt-card7"><div class="cam-title">กล้อง 7</div><div class="count" id="rt-cam7">-</div><div class="unit">คน</div></div>
@@ -124,8 +130,7 @@
                     <th style="width: 25%;">หน่วย</th>
                 </tr>
             </thead>
-            <tbody id="rt-table-body">
-                </tbody>
+            <tbody id="rt-table-body"></tbody>
             <tfoot>
                 <tr class="summary-row">
                     <td colspan="2">รวมจำนวนทั้งหมด (Total)</td>
@@ -143,15 +148,19 @@
 
     <hr>
 
-    <div class="section-title history-title">🔵 ส่วนที่ 2: บันทึกข้อมูลประวัติย้อนหลังเรียงตามเวลาต่อเนื่อง (History Log)</div>
-    <div class="status-badge history-mode">ดึงข้อมูลอัตโนมัติทุก 5 วินาที • ข้อมูลใหม่จะดันข้อมูลเก่าลงด้านล่าง</div>
-    <p style="margin-top: 5px;">จำนวนข้อมูลที่บันทึกในเซสชั่นนี้: <span id="hist-log-count" style="font-weight: bold; color: #004085;">0</span> ชุดเวลา</p>
+    <div class="section-title history-title">🔵 ส่วนที่ 2: บันทึกข้อมูลประวัติย้อนหลังค้นหาตามวันเวลา (History Log)</div>
+    <div class="status-badge history-mode">ดึงข้อมูลอัตโนมัติทุก 5 วินาที • เลือก วัน/เดือน/ปี เพื่อกรองดูรายงานเฉพาะวันได้</div>
+    <p style="margin-top: 5px;">จำนวนข้อมูลที่แสดงอยู่ขณะนี้: <span id="hist-log-count" style="font-weight: bold; color: #004085;">0</span> ชุดเวลา</p>
 
     <div class="table-container">
         <div class="table-header-group">
             <div class="table-title history-table-title">📋 ตารางแสดง Log ประวัติย้อนหลังแสดงพร้อมกัน 9 กล้อง</div>
             <div class="download-buttons">
-                <button class="btn-download btn-txt" onclick="downloadTXTHistory()">📝 ดาวน์โหลดสถิติทั้งหมด (TXT)</button>
+                <div class="filter-group">
+                    <label for="history-date-filter">ค้นหาย้อนหลัง:</label>
+                    <input type="date" id="history-date-filter" class="input-date" onchange="renderHistoryTable()">
+                </div>
+                <button class="btn-download btn-txt" onclick="downloadTXTHistory()">📝 ดาวน์โหลดผลที่ค้นหา (TXT)</button>
             </div>
         </div>
         
@@ -159,17 +168,17 @@
             <table id="history-log-table">
                 <thead>
                     <tr>
-                        <th style="width: 16%;">เวลาที่บันทึกข้อมูล</th>
-                        <th style="width: 8%;">กล้อง 1</th>
-                        <th style="width: 8%;">กล้อง 2</th>
-                        <th style="width: 8%;">กล้อง 3</th>
-                        <th style="width: 8%;">กล้อง 4</th>
-                        <th style="width: 8%;">กล้อง 5</th>
-                        <th style="width: 8%;">กล้อง 6</th>
-                        <th style="width: 8%;">กล้อง 7</th>
-                        <th style="width: 8%;">กล้อง 8</th>
-                        <th style="width: 8%;">กล้อง 9</th>
-                        <th style="width: 10%;">รวมทั้งหมด</th>
+                        <th style="width: 20%;">เวลาที่บันทึกข้อมูล</th>
+                        <th style="width: 7%;">กล้อง 1</th>
+                        <th style="width: 7%;">กล้อง 2</th>
+                        <th style="width: 7%;">กล้อง 3</th>
+                        <th style="width: 7%;">กล้อง 4</th>
+                        <th style="width: 7%;">กล้อง 5</th>
+                        <th style="width: 7%;">กล้อง 6</th>
+                        <th style="width: 7%;">กล้อง 7</th>
+                        <th style="width: 7%;">กล้อง 8</th>
+                        <th style="width: 7%;">กล้อง 9</th>
+                        <th style="width: 11%;">รวมทั้งหมด</th>
                     </tr>
                 </thead>
                 <tbody id="hist-table-body">
@@ -182,9 +191,14 @@
     <script>
         const dbBaseUrl = "https://cctc3-82c63-default-rtdb.asia-southeast1.firebasedatabase.app/";
         
-        // ตัวแปรสำหรับเก็บประวัติที่เข้ามาในตารางส่วนที่ 2 ไว้ใช้ดาวน์โหลด TXT
         let historicalLogList = []; 
-        let lastLoggedTime = ""; // ใช้เช็คเพื่อไม่ให้บันทึกเวลาเดิมซ้ำในตารางประวัติ
+        let lastLoggedTime = ""; 
+
+        // ตรวจสอบและดึงข้อมูลวันที่ปัจจุบันตั้งค่าเริ่มต้นให้กับตรรกะกรองหน้าเว็บ
+        window.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('history-date-filter').value = today;
+        });
 
         // ==================== [ส่วนที่ 1] LOGIC REALTIME (2 วินาที) ====================
         function startRealtimeSync() {
@@ -211,10 +225,8 @@
                 const countValue = data[`cam${i}`] !== undefined ? Number(data[`cam${i}`]) : 0;
                 total += countValue;
 
-                // อัปเดตตัวเลขใน Grid Card 
                 document.getElementById(`rt-cam${i}`).innerText = countValue;
 
-                // เพิ่มแถวลงในตารางสรุป Realtime
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${i}</td>
@@ -230,24 +242,18 @@
         }
 
 
-        // ==================== [ส่วนที่ 2] LOGIC HISTORY LOG (5 วินาที / ดันลงล่าง) ====================
+        // ==================== [ส่วนที่ 2] LOGIC HISTORY LOG + FILTERING ====================
         function startHistoryLogSync() {
             function fetchHistoryLog() {
                 fetch(`${dbBaseUrl}data.json`)
                     .then(response => response.json())
                     .then(data => {
                         if(data) {
-                            const currentTime = data.last_update || new Date().toLocaleTimeString('th-TH');
+                            const currentTime = data.last_update || new Date().toLocaleString('th-TH');
                             
-                            // ถ้าเป็นข้อมูลเวลาเดิม ปล่อยข้ามไป ไม่บันทึกซ้ำซ้อน
                             if (currentTime === lastLoggedTime) return; 
                             lastLoggedTime = currentTime;
 
-                            // เอาแถวคำว่า "กำลังรอรับสัญญาณ" ออกเมื่อมีข้อมูลครั้งแรกเข้ามา
-                            const noRow = document.getElementById("no-history-row");
-                            if(noRow) noRow.remove();
-
-                            // คำนวณยอดรวมของรอบเวลานี้
                             let rowTotal = 0;
                             let camValues = [];
                             for(let i=1; i<=9; i++) {
@@ -256,41 +262,79 @@
                                 rowTotal += val;
                             }
 
-                            // เก็บเข้า Array สำหรับเอาไว้ส่งออกไฟล์ TXT
+                            // แตกข้อมูลเพื่อจับคู่กับตัวเช็คความถูกต้องของ วัน/เดือน/ปี
+                            let dateKey = "";
+                            if(data.last_update) {
+                                // พยายามแกะวันที่จากข้อมูล Firebase (สมมติฟอร์แมตมาตรฐานคือ DD/MM/YYYY หรือ YYYY-MM-DD)
+                                // เพื่อความเสถียร หากดึงแกะจากสตริงไม่ได้ จะใช้ระบบแปลงวันที่ของเครื่องเซสชันปัจจุบันมาร่วมบันทึก
+                                const parts = data.last_update.split(' ');
+                                if(parts[0] && parts[0].includes('/')) {
+                                    const dParts = parts[0].split('/');
+                                    // แปลงให้อยู่ในฟอร์แมต YYYY-MM-DD
+                                    if(dParts[2] && dParts[1] && dParts[0]) {
+                                        let year = dParts[2].length === 4 ? dParts[2] : new Date().getFullYear();
+                                        dateKey = `${year}-${dParts[1].padStart(2,'0')}-${dParts[0].padStart(2,'0')}`;
+                                    }
+                                }
+                            }
+                            
+                            if(!dateKey) {
+                                dateKey = new Date().toISOString().split('T')[0];
+                            }
+
+                            // เพิ่มพารามิเตอร์เก็บตัวแปร rawDate สำหรับฟังก์ชันสืบค้นคัดกรองย้อนหลัง
                             historicalLogList.unshift({
+                                rawDate: dateKey,
                                 time: currentTime,
                                 cams: camValues,
-                                total: rowTotal
+                                total: rowTotal,
+                                isNew: true // มาร์กไว้เพื่อทำไฮไลต์เอฟเฟกต์เฉพาะแถวที่พึ่งวิ่งเข้าสดๆ
                             });
 
-                            // อัปเดตตัวเลขจำนวนแถว log บนหน้าเว็บ
-                            document.getElementById("hist-log-count").innerText = historicalLogList.length;
-
-                            // สร้างแถวตารางข้อมูลใหม่ (HTML Row)
-                            const tbody = document.getElementById("hist-table-body");
-                            const newRow = document.createElement("tr");
-                            newRow.className = "new-row-highlight"; // เพิ่มเอฟเฟกต์กระพริบตาเมื่อมีข้อมูลเข้าใหม่
-                            
-                            let rowHTML = `<td style="font-weight:bold; color:#0056b3; background-color:#f8f9fa;">${currentTime}</td>`;
-                            for(let i=0; i<9; i++) {
-                                rowHTML += `<td style="font-weight:600;">${camValues[i]}</td>`;
-                            }
-                            rowHTML += `<td style="background-color:#e9ecef; font-weight:bold; color:#d9381e;">${rowTotal}</td>`;
-                            
-                            newRow.innerHTML = rowHTML;
-
-                            // เทคนิคเด่น: แทรกข้อมูลใหม่ไว้ที่ "บนสุดของตาราง" (Index 0) เพื่อดันข้อมูลเก่าร่วงลงไปข้างล่าง
-                            tbody.insertBefore(newRow, tbody.firstChild);
+                            renderHistoryTable();
                         }
                     }).catch(err => console.error("History Log Error:", err));
             }
-            // เรียกทำงานทุกๆ 5 วินาที ตามโจทย์ระบุ
             fetchHistoryLog(); 
             setInterval(fetchHistoryLog, 5000);
         }
 
+        // ฟังก์ชันหัวใจหลักในการคัดกรองข้อมูลตามวัน เดือน ปี บนหน้าเว็บและตารางย้อนหลัง
+        function renderHistoryTable() {
+            const selectedDate = document.getElementById("history-date-filter").value;
+            const tbody = document.getElementById("hist-table-body");
+            tbody.innerHTML = "";
 
-        // ==================== [ระบบส่งออกข้อมูลเฉพาะไฟล์ Notepad (TXT)] ====================
+            // กรองข้อมูลเฉพาะวันที่เลือก
+            const filteredData = historicalLogList.filter(item => !selectedDate || item.rawDate === selectedDate);
+            
+            document.getElementById("hist-log-count").innerText = filteredData.length;
+
+            if(filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" style="color:#999; padding: 30px;">ไม่พบประวัติข้อมูลของวันที่ ${selectedDate || 'ที่เลือก'}</td></tr>`;
+                return;
+            }
+
+            filteredData.forEach(item => {
+                const newRow = document.createElement("tr");
+                if (item.isNew) {
+                    newRow.className = "new-row-highlight";
+                    item.isNew = false; // ปิดสถานะหลังสร้างภาพเสร็จเพื่อป้องกันกระพริบตอนกรองซ้ำ
+                }
+
+                let rowHTML = `<td style="font-weight:bold; color:#0056b3; background-color:#f8f9fa;">${item.time}</td>`;
+                for(let i=0; i<9; i++) {
+                    rowHTML += `<td style="font-weight:600;">${item.cams[i]}</td>`;
+                }
+                rowHTML += `<td style="background-color:#e9ecef; font-weight:bold; color:#d9381e;">${item.total}</td>`;
+                
+                newRow.innerHTML = rowHTML;
+                tbody.appendChild(newRow);
+            });
+        }
+
+
+        // ==================== [ระบบส่งออกข้อมูลเป็นไฟล์ Notepad (TXT)] ====================
         function downloadTXTRealtime() {
             let txtContent = `==================================================\n`;
             txtContent += `📊 รายงานสรุปข้อมูลจำนวนคนรายกล้อง (Realtime)\n`;
@@ -316,25 +360,28 @@
         }
 
         function downloadTXTHistory() {
-            if(historicalLogList.length === 0) return alert("ยังไม่มีข้อมูลประวัติให้ดาวน์โหลด");
+            const selectedDate = document.getElementById("history-date-filter").value;
+            const filteredData = historicalLogList.filter(item => !selectedDate || item.rawDate === selectedDate);
+
+            if(filteredData.length === 0) return alert("ยังไม่มีข้อมูลของวันที่เลือกให้ดาวน์โหลด");
 
             let txtContent = `==========================================================================================\n`;
             txtContent += `📊 รายงานสถิติบันทึกข้อมูลย้อนหลังแยกรายกล้องต่อเนื่อง (History Log)\n`;
-            txtContent += `📅 วันที่ดึงรายงาน: ${new Date().toLocaleDateString('th-TH')} เวลา ${new Date().toLocaleTimeString('th-TH')}\n`;
+            txtContent += `📅 ประจำวันที่ค้นหา: ${selectedDate || 'ทั้งหมด'} | ดึงไฟล์เมื่อ: ${new Date().toLocaleTimeString('th-TH')}\n`;
             txtContent += `==========================================================================================\n\n`;
             txtContent += `เวลาบันทึก\t\tCam1\tCam2\tCam3\tCam4\tCam5\tCam6\tCam7\tCam8\tCam9\tรวมทั้งหมด\n`;
             txtContent += `------------------------------------------------------------------------------------------\n`;
 
-            historicalLogList.forEach(item => {
+            filteredData.forEach(item => {
                 let camLine = item.cams.join('\t');
                 txtContent += `${item.time}\t${camLine}\t${item.total}\n`;
             });
 
             txtContent += `------------------------------------------------------------------------------------------\n`;
-            txtContent += `รวมบันทึกข้อมูลทั้งหมดจำนวน: ${historicalLogList.length} ชุดเวลาสุทธิ\n`;
+            txtContent += `รวมบันทึกข้อมูลที่กรองค้นหาได้ทั้งหมดจำนวน: ${filteredData.length} ชุดเวลาสุทธิ\n`;
             txtContent += `==========================================================================================\n`;
 
-            saveFileBlob(txtContent, `ประวัติย้อนหลัง_HistoryLog.txt`);
+            saveFileBlob(txtContent, `ประวัติย้อนหลัง_วันที่_${selectedDate || 'ALL'}.txt`);
         }
 
         function saveFileBlob(content, filename) {
@@ -347,7 +394,7 @@
             document.body.removeChild(link);
         }
 
-        // เริ่มระบบซิงค์ทั้ง 2 ส่วนพร้อมกันเมื่อเปิดหน้าเว็บ
+        // สั่งเปิดระบบทำงานพร้อมกันทั้งหมดเมื่อเปิดหน้าเพจ
         startRealtimeSync();
         startHistoryLogSync();
     </script>
